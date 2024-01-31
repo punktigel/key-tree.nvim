@@ -1,4 +1,5 @@
 local M = {}
+-- TODO: restructure code
 
 M._mappings = {}
 M._chars = {}
@@ -96,23 +97,51 @@ local win_config = function()
 end
 
 
-local create_win = function(text)
+local function create_buf(text)
     -- create new buf
     local buf_nr = vim.api.nvim_create_buf(false, true)
-
-    -- open win with buf
-    local win_id = vim.api.nvim_open_win(buf_nr, true, win_config())
+    print("BUFNR: " .. buf_nr)
 
     -- add text from table
     vim.api.nvim_buf_set_lines(buf_nr, 0, 1, false, text)
+    return buf_nr
+end
+
+
+local function open_win(buf_nr)
+    local win_id = vim.api.nvim_open_win(buf_nr, true, win_config())
+    print("WIN: " .. win_id)
     return win_id
 end
 
 
-close_win = function(win_id)
+local function close_win(win_id, buf_nr)
     if vim.api.nvim_win_is_valid(win_id) then
         vim.api.nvim_win_close(win_id, true)
+        vim.api.nvim_buf_delete(buf_nr, {force = true})
     end
+end
+
+
+local win_open = false
+local win_id = ""
+local buf_nr = ""
+function toggle_win()
+    if win_open then
+        -- close win
+        print("close win")
+        close_win(win_id, buf_nr)
+        win_open = false
+    else
+        get_tree()
+        -- create buf and open win
+        print("create buf and open win")
+        buf_nr = create_buf(M._buf_keys)
+        win_id = open_win(buf_nr)
+        win_open = true
+        set_folding()
+    end
+
 end
 
 
@@ -139,15 +168,51 @@ end
 -- print(vim.inspect(M._add_node(M._root, 'ab')))
 -- print(vim.inspect(M._add_node(M._root, 'ac')))
 
-local tree = create_tree('n')
--- print(vim.inspect(tree))
+function get_tree()
+    table.insert(M._buf_keys, "Key-Tree")
+    local tree = create_tree('n')
+    -- print(vim.inspect(tree))
 
-display_tree(tree, 0)
--- print(vim.inspect(M._buf_keys))
+    display_tree(tree, 1)
+end
 
 
-local win_id = create_win(M._buf_keys)
--- close_win(win_id)
+function Folding(lnum)
+    local current_indent = vim.fn.indent(lnum)
+    local next_indent = vim.fn.indent(lnum + 1)
+
+    -- increase indent to cover the next line
+    if current_indent < next_indent then
+        return "a1"
+    end
+
+    -- decrease indent to return to previous indenting
+    if current_indent > next_indent then
+        -- TODO: calculate space indenting
+        local diff = (current_indent - next_indent) / 4
+        return "s" .. diff
+    end
+
+    return "="
+end
+
+
+function FoldText()
+    local fold_level = vim.v.foldlevel - 1
+    -- TODO: calculate space indenting
+    local space = string.rep(" ", fold_level * 4)
+    return space .. '>' .. vim.fn.getline(vim.v.foldstart)
+end
+
+
+function set_folding()
+    vim.o.foldmethod = "expr"
+    vim.o.foldexpr = "v:lua.Folding(v:lnum)"
+    vim.o.foldtext = "v:lua.FoldText()"
+
+    -- remove trailing dots
+    vim.cmd("set fillchars+=fold:\\ ")
+end
 
 
 return M
