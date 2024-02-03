@@ -27,7 +27,15 @@ end
 
 
 --- Calculate key tree
-local function get_tree()
+---@param recompute boolean
+local function get_tree(recompute)
+    -- dont recompute the key tree
+    if not(recompute) and next(M._buf_keys) ~= nil then
+        return
+    end
+
+    -- clear previous key tree
+    M._buf_keys = {}
     table.insert(M._buf_keys, "Key-Tree")
     local tree = key_tree.create_tree('n')
 
