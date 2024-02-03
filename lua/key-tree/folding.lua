@@ -1,6 +1,9 @@
 local folding = {}
 
-function Folding(lnum)
+--- Calculate folding level based on indenting
+---@param lnum any
+---@return string
+function Folding_level(lnum)
     local current_indent = vim.fn.indent(lnum)
     local next_indent = vim.fn.indent(lnum + 1)
 
@@ -20,7 +23,9 @@ function Folding(lnum)
 end
 
 
-function FoldText()
+--- Format folds
+---@return unknown
+function Fold_text()
     local fold_level = vim.v.foldlevel - 1
     -- TODO: calculate space indenting
     local space = string.rep(" ", fold_level * 4)
@@ -28,10 +33,11 @@ function FoldText()
 end
 
 
+--- Set folding on the current buffer
 function folding.set_folding()
     vim.o.foldmethod = "expr"
-    vim.o.foldexpr = "v:lua.Folding(v:lnum)"
-    vim.o.foldtext = "v:lua.FoldText()"
+    vim.o.foldexpr = "v:lua.Folding_level(v:lnum)"
+    vim.o.foldtext = "v:lua.Fold_text()"
 
     -- remove trailing dots
     vim.cmd("set fillchars+=fold:\\ ")

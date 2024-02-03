@@ -1,5 +1,7 @@
 local ui = {}
 
+--- Return floating window configuration
+---@return table
 local win_config = function()
     local row = 3
     local col = 5
@@ -19,17 +21,23 @@ local win_config = function()
 end
 
 
-function ui.create_buf(text)
+--- Create a new buffer with text
+---@param table table
+---@return unknown
+function ui.create_buf(table)
     -- create new buf
     local buf_nr = vim.api.nvim_create_buf(false, true)
     print("BUFNR: " .. buf_nr)
 
-    -- add text from table
-    vim.api.nvim_buf_set_lines(buf_nr, 0, 1, false, text)
+    -- add table from table
+    vim.api.nvim_buf_set_lines(buf_nr, 0, 1, false, table)
     return buf_nr
 end
 
 
+--- Open floating window with specified buffer
+---@param buf_nr any
+---@return unknown
 function ui.open_win(buf_nr)
     local win_id = vim.api.nvim_open_win(buf_nr, true, win_config())
     print("WIN: " .. win_id)
@@ -37,6 +45,9 @@ function ui.open_win(buf_nr)
 end
 
 
+--- Close floating window and delete buffer
+---@param win_id any
+---@param buf_nr any
 function ui.close_win(win_id, buf_nr)
     if vim.api.nvim_win_is_valid(win_id) then
         vim.api.nvim_win_close(win_id, true)

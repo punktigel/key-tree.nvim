@@ -4,10 +4,13 @@ local folding = require("key-tree.folding")
 
 local M = {}
 M._buf_keys = {}
+M._win_open = false
+M._win_id = nil
+M._buf_nr = nil
 
 
-local display_tree
-display_tree = function(tree, iteration)
+local create_display
+create_display = function(tree, iteration)
     if next(tree) == nil then
         return
     end
@@ -16,45 +19,36 @@ display_tree = function(tree, iteration)
         tree = tree.children
     end
 
-    for i, value in pairs(tree) do
-        -- print("VALUE: " .. string.rep("    ",iteration) .. vim.inspect(tree[i].value))
+    for i, _ in pairs(tree) do
         table.insert(M._buf_keys, string.rep("\t", iteration) .. vim.inspect(tree[i].value))
-        display_tree(tree[i], iteration + 1)
+        create_display(tree[i], iteration + 1)
     end
 end
 
 
--- Tests
--- M._root = M._create_node("Root")
--- print(vim.inspect(M._add_node(M._root, 'ab')))
--- print(vim.inspect(M._add_node(M._root, 'ac')))
-
-
+--- Calculate key tree
 local function get_tree()
     table.insert(M._buf_keys, "Key-Tree")
     local tree = key_tree.create_tree('n')
-    -- print(vim.inspect(tree))
 
-    display_tree(tree, 1)
+    create_display(tree, 1)
 end
 
 
-local win_open = false
-local win_id = ""
-local buf_nr = ""
+--- Toggle floating window (key-tree)
 function toggle_win()
-    if win_open then
+    if M._win_open then
         -- close win
         print("close win")
-        ui.close_win(win_id, buf_nr)
-        win_open = false
+        ui.close_win(M._win_id, M._buf_nr)
+        M._win_open = false
     else
         get_tree()
         -- create buf and open win
         print("create buf and open win")
-        buf_nr = ui.create_buf(M._buf_keys)
-        win_id = ui.open_win(buf_nr)
-        win_open = true
+        M._buf_nr = ui.create_buf(M._buf_keys)
+        M._win_id = ui.open_win(M._buf_nr)
+        M._win_open = true
 
         folding.set_folding()
     end

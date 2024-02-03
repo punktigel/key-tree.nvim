@@ -37,10 +37,15 @@ local search_child = function(child_table, char)
 end
 
 
-function tree._add_node(root, value)
+--- Add a new keymap based on lhs mapping
+---@param root any
+---@param value string
+---@return any
+function tree._add_mapping(root, value)
     local chars = get_char(value)
     local tmp = root
-    for i, c in ipairs(chars) do
+
+    for _, c in ipairs(chars) do
         local child = search_child(tmp.children, c)
 
         if tmp.children == {} or not(child) then
@@ -55,15 +60,18 @@ function tree._add_node(root, value)
 end
 
 
+--- Create a key tree with keymappings based on a mode
+---@param mode string
+---@return table
 function tree.create_tree(mode)
     local root = tree._create_node("root")
     local maps = vim.api.nvim_get_keymap(mode)
     -- print(vim.inspect(maps))
 
-    for i, map in pairs(maps) do
+    for _, map in pairs(maps) do
         -- TODO: add special keymaps (<C>, <F1> etc)
         if not(string.find(map.lhs, "<")) then
-            tree._add_node(root, map.lhs)
+            tree._add_mapping(root, map.lhs)
         end
     end
     return root
