@@ -29,7 +29,8 @@ function Fold_text()
     local fold_level = vim.v.foldlevel - 1
     -- TODO: calculate space indenting
     local space = string.rep(" ", fold_level * 4)
-    return space .. '>' .. vim.fn.getline(vim.v.foldstart)
+    local fold_childs = vim.v.foldend - vim.v.foldstart
+    return space .. '>' .. vim.fn.getline(vim.v.foldstart) .. "\t[" .. fold_childs .. "]"
 end
 
 
@@ -41,6 +42,8 @@ function folding.set_folding()
 
     -- remove trailing dots
     vim.cmd("set fillchars+=fold:\\ ")
+    -- remove end-of-buffer symbols (~)
+    vim.opt.fillchars:append { eob = " " }
 end
 
 

@@ -44,7 +44,7 @@ end
 
 
 --- Toggle floating window (key-tree)
-function toggle_win()
+function M.toggle_win()
     if M._win_open then
         -- close win
         print("close win")
