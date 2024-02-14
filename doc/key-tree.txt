@@ -1,0 +1,20 @@
+================================================================================
+                                                                    *key-tree*
+
+This plugin creates a tree from nvim keymappings.
+
+
+                                                       *key-tree.toggle_win()*
+key-tree.toggle_win()
+
+    Toggle a floating window to display the tree of nvim keymappings.
+    The tree can be folded with normal nvim fold commands.
+
+    See |fold| for more information.
+
+    Folding is done with an expression based on the indenting.
+    Therefore each subtree has its own fold.
+
+
+
+vim:tw=78:ts=8:ft=help:norl:
