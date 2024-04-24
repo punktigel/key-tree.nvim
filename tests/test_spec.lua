@@ -17,7 +17,7 @@ describe("key-tree", function()
 
         local lhs_mapping = "ab"
         local res = require("key-tree.tree")._add_mapping(root, lhs_mapping)
-        assert.are.same(res, {children={{children={{children={}, value="b"}}, value="a"}}, value=s})
+        assert.are.same(res, {children={{children={{children={}, value="b", info = "ab"}}, value="a", info = ""}}, value=s})
     end)
 end)
 

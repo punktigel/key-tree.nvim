@@ -20,7 +20,7 @@ create_display = function(tree, iteration)
     end
 
     for i, _ in pairs(tree) do
-        table.insert(M._buf_keys, string.rep("\t", iteration) .. vim.inspect(tree[i].value))
+        table.insert(M._buf_keys, string.rep("\t", iteration) .. vim.inspect(tree[i].value) .. tree[i].info)
         create_display(tree[i], iteration + 1)
     end
 end
