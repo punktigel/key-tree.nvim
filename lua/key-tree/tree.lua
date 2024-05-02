@@ -1,4 +1,6 @@
 local tree = {}
+local utils = require("key-tree.utils")
+tree.Warnings = {}
 
 ---Create a new node
 ---@param value any
@@ -63,11 +65,19 @@ function tree._add_mapping(root, value, desc)
         if tmp.children == {} or not(child) then
             local new_node = tree._create_node(c, info)
             table.insert(tmp.children, new_node)
+
+            -- update if keymap is a prefix
+            if tmp.info ~= "" and tmp.info ~= nil and not string.find(tmp.info, "WARNING") then
+                tmp.info = " WARNING " .. info
+                table.insert(tree.Warnings, {info = tmp.info, lhs = string.sub(value, 0, i - 1), location = "", lnum = ""})
+            end
+
             tmp = new_node
         else
             -- update if keymap is a prefix
             if (chars[i + 1] == nil) then
-                child.info = info
+                child.info = " WARNING " .. info
+                table.insert(tree.Warnings, {info = child.info, lhs = value, location = "", lnum = ""})
             end
             tmp = child
         end
@@ -82,7 +92,7 @@ end
 function tree.create_tree(mode)
     local root = tree._create_node("root", "root")
     local maps = vim.api.nvim_get_keymap(mode)
-    -- print(vim.inspect(maps))
+    tree.Warnings = {}
 
     for _, map in pairs(maps) do
         -- TODO: add special keymaps (<C>, <F1> etc)
@@ -99,5 +109,57 @@ function tree.create_tree(mode)
 end
 
 
--- print(vim.inspect(tree.create_tree('n')))
+---Create a table with all prefix warnings from keymappings
+---@param mode string
+tree.setWarningTable = function(mode)
+    tree.create_tree(mode)
+    local locations = tree.getLocationTable()
+
+    for _, warning in pairs(tree.Warnings) do
+        for _, mapping in pairs(locations) do
+            local map_lhs = string.gsub(mapping.lhs, "<Space>", " ")
+
+            if map_lhs == warning.lhs then
+                if not mapping.file then
+                    warning.location = "NO FILE FOUND"
+                else
+                    print(mapping.file)
+                    warning.location = mapping.file
+                    warning.lnum = mapping.lnum
+                end
+            end
+        end
+    end
+    -- print(vim.inspect(tree.Warnings))
+end
+
+
+---Return a table with the location where the keymappings are set
+---@return table
+tree.getLocationTable = function()
+    local str_mappings = vim.api.nvim_call_function('execute', {'map'})
+    local mapping_table  = utils.split_str(str_mappings, "\n")
+    local locations = {}
+
+    for _, mapping in pairs(mapping_table) do
+        if nil ~= string.find(mapping, "<")  then
+            local parts = utils.split_str(mapping, " ")
+            local lhs = string.gsub(parts[3], " ", "")
+            local file = nil
+            local lnum = nil
+
+            for _, p in pairs(parts) do
+                if nil ~= string.find(p, "~") then
+                    local f_data = utils.split_str(p, ":")
+                    file = f_data[1]
+                    lnum = utils.split_str(f_data[2], ">")[1]
+                end
+            end
+
+            table.insert(locations, {lhs = lhs, file = file, lnum = lnum})
+        end
+    end
+    return locations
+end
+
 return tree

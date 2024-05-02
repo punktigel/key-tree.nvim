@@ -1,6 +1,7 @@
 local key_tree = require("key-tree.tree")
 local ui = require("key-tree.ui")
 local folding = require("key-tree.folding")
+local utils = require("key-tree.utils")
 
 local M = {}
 M._buf_keys = {}
@@ -51,7 +52,7 @@ function M.toggle_win()
         ui.close_win(M._win_id, M._buf_nr)
         M._win_open = false
     else
-        get_tree()
+        get_tree(false)
         -- create buf and open win
         print("create buf and open win")
         M._buf_nr = ui.create_buf(M._buf_keys)
@@ -61,5 +62,17 @@ function M.toggle_win()
         folding.set_folding()
     end
 end
+
+
+---Setup a quickfix list with all prefix warnings from keymappings and open it
+---@param mode string
+function M.Warning_qf(mode)
+    key_tree.setWarningTable(mode)
+    local qf = utils.get_Warning_qf(key_tree.Warnings)
+
+    vim.api.nvim_call_function("setqflist", {qf})
+    vim.api.nvim_command("copen")
+end
+
 
 return M
